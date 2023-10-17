@@ -2,7 +2,6 @@
 """Task 12 module
 """
 from pymongo import MongoClient
-from pymongo import MongoClient
 
 
 # Create a connection to the MongoDB server
