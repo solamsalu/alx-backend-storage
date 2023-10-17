@@ -2,43 +2,31 @@
 """Task 12 module
 """
 from pymongo import MongoClient
-from typing import Tuple
+from pymongo import MongoClient
 
 
-def get_nginx_stats() -> Tuple:
-    """
-    Queries nginx collection for specific data
-    - Returns:
-        - count of all documents
-        - count of each method in the collection
-        - count of each GET calls to /status path
-    """
-    client: MongoClient = MongoClient()
-    db = client.logs
-    collection = db.nginx
-    methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE']
-    method_stats = []
-    for method in methods:
-        method_count = collection.count_documents({'method': method})
-        method_stats.append({'method': method, 'count': method_count})
-    doc_count = collection.estimated_document_count()
-    status_path_stats = collection.count_documents({'method': 'GET',
-                                                    'path': '/status'})
-    client.close()
-    return doc_count, method_stats, status_path_stats
+# Create a connection to the MongoDB server
+client = MongoClient('mongodb://localhost:27017/')
 
+# Connect to the 'logs' database
+db = client['logs']
 
-def print_nginx_stats() -> None:
-    """
-    Prints stats from nginx query
-    """
-    doc_count, method_stats, status_path_stats = get_nginx_stats()
-    print(f'{doc_count} logs')
-    print('Methods:')
-    for method in method_stats:
-        print(f'\tmethod {method.get("method")}: {method.get("count")}')
-    print(f'{status_path_stats} status check')
+# Connect to the 'nginx' collection
+collection = db['nginx']
 
+# Get the total number of logs
+total_logs = collection.count_documents({})
 
-if __name__ == '__main__':
-    print_nginx_stats()
+# Get the number of documents for each method
+methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+method_counts = {method: collection.count_documents({"method": method}) for method in methods}
+
+# Get the number of documents with method=GET and path=/status
+get_status_count = collection.count_documents({"method": "GET", "path": "/status"})
+
+# Display the statistics
+print(f"{total_logs} logs")
+print("Methods:")
+for method, count in method_counts.items():
+    print(f"\t{method}: {count}")
+print(f"GET /status: {get_status_count}")
